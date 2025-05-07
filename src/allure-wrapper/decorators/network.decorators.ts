@@ -1,9 +1,7 @@
 import { Page } from "@playwright/test";
 import { allure } from "allure-playwright";
 
-/**
- * Пробует спарсить JSON, возвращает исходную строку, если не получилось
- */
+
 function tryParseJson(input: string | null): any {
   if (!input) return null;
   try {
@@ -13,12 +11,10 @@ function tryParseJson(input: string | null): any {
   }
 }
 
-/**
- * Возвращает эмодзи по HTTP-статусу
- */
+
 function statusToEmoji(status: number): string {
   switch (true) {
-    // ✅ Успешные запросы (2xx)
+    
     case status === 200:
       return "✅";
     case status === 201:
@@ -26,13 +22,13 @@ function statusToEmoji(status: number): string {
     case status >= 200 && status < 300:
       return "🟩";
 
-    // 🟡 Редиректы (3xx)
+    
     case status === 301 || status === 302:
       return "🔄";
     case status >= 300 && status < 400:
       return "🟡";
 
-    // ❌ Ошибки клиента (4xx)
+    
     case status === 400:
       return "🚫";
     case status === 401:
@@ -44,20 +40,20 @@ function statusToEmoji(status: number): string {
     case status >= 400 && status < 500:
       return "❌";
 
-    // 🔥 Серверные ошибки (5xx)
+    
     case status === 500:
       return "💥";
     case status >= 500 && status < 600:
       return "🔥";
 
-    // ⚠️ Неизвестный статус
+    
     default:
       return "⚠️";
   }
 }
 
 export function wrapNetworkActions(page: Page): void {
-  // --- Переопределяем page.waitForResponse ---
+  
   const originalWaitForResponse = page.waitForResponse.bind(page);
   page.waitForResponse = async function (urlOrPredicate, options?) {
     const urlDescription =
@@ -75,17 +71,17 @@ export function wrapNetworkActions(page: Page): void {
         const statusText = response.statusText();
         const emoji = statusToEmoji(status);
 
-        // 🧩 Единая запись: Метод + URL + Статус
+        
         const stepName = `📡 ${method} ${url} → ${emoji} ${status} ${statusText}`;
         await allure.step(stepName, async () => {
-          // 📝 Заголовки запроса (без фильтрации)
+          
           allure.attachment(
             "📝 Заголовки запроса",
             JSON.stringify(request.headers(), null, 2),
             "application/json"
           );
 
-          // 📄 Тело запроса
+          
           const postData = await request.postData();
           if (postData) {
             const parsedPostData = tryParseJson(postData);
@@ -96,14 +92,14 @@ export function wrapNetworkActions(page: Page): void {
             );
           }
 
-          // 📥 Заголовки ответа (без фильтрации)
+          
           allure.attachment(
             "📥 Заголовки ответа",
             JSON.stringify(response.headers(), null, 2),
             "application/json"
           );
 
-          // 📦 Тело ответа
+          
           const responseBody = await response.text();
           const parsedResponseBody = tryParseJson(responseBody);
           allure.attachment(
@@ -118,7 +114,7 @@ export function wrapNetworkActions(page: Page): void {
     );
   };
 
-  // --- Переопределяем page.route ---
+  
   const originalRoute = page.route.bind(page);
   page.route = async function (url, handler) {
     const expectedUrl = typeof url === "string" ? url : "<предикат>";
@@ -134,14 +130,14 @@ export function wrapNetworkActions(page: Page): void {
       const stepName = `🛠 Мок запроса: ${actualUrl}`;
 
       return await allure.step(stepName, async () => {
-        // 📝 Заголовки запроса (без фильтрации)
+        
         allure.attachment(
           "📝 Заголовки запроса",
           JSON.stringify(request.headers(), null, 2),
           "application/json"
         );
 
-        // 📄 Тело запроса
+        
         const postData = await request.postData();
         if (postData) {
           const parsedPostData = tryParseJson(postData);
@@ -152,7 +148,7 @@ export function wrapNetworkActions(page: Page): void {
           );
         }
 
-        // 🔁 Перехватываем route.fulfill
+        
         const originalFulfill = route.constructor.prototype.fulfill;
 
         route.fulfill = async function (response) {
@@ -160,17 +156,17 @@ export function wrapNetworkActions(page: Page): void {
           const statusText = response.statusText || "OK";
           const emoji = statusToEmoji(status);
 
-          // 🧩 Единая запись: метод + URL + статус
+          
           const fullStatusStep = `📡 ${method} ${actualUrl} → ${emoji} ${status} ${statusText}`;
           return await allure.step(fullStatusStep, async () => {
-            // 📥 Заголовки ответа (без фильтрации)
+            
             allure.attachment(
               "📥 Заголовки ответа",
               JSON.stringify(response.headers || {}),
               "application/json"
             );
 
-            // 📦 Тело ответа
+            
             const body =
               typeof response.body === "string"
                 ? response.body

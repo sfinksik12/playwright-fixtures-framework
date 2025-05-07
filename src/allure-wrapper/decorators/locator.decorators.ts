@@ -3,9 +3,7 @@ import { ACTION_TEMPLATES } from "./action-templates";
 import { createStepDecorator } from "./step.decorator";
 import { format, formatSelector } from "../../utils/format.utils";
 
-/**
- * Оборачивает действия локатора (click, fill и т.д.) в allure.step
- */
+
 export function wrapLocatorActions(locator: Locator, rawSelector: any): void {
   const selectorDesc = formatSelector(rawSelector);
 

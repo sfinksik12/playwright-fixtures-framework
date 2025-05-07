@@ -3,11 +3,9 @@ import { createStepDecorator } from "./step.decorator";
 import { wrapLocatorActions } from "./locator.decorators";
 import { locatorCreators } from "./constants";
 
-/**
- * Оборачивает методы page (goto, getByRole и т.д.) в allure.step
- */
+
 export function wrapPageWithAllureSteps(page: Page): void {
-  // Переопределяем goto
+  
   const originalGoto = page.goto.bind(page);
   page.goto = createStepDecorator((...args) => {
     let urlDescription = "<без URL>";
@@ -23,7 +21,7 @@ export function wrapPageWithAllureSteps(page: Page): void {
     return await originalGoto(...args);
   });
 
-  // Переопределяем getBy... методы
+  
   for (const method of locatorCreators) {
     if (page[method]) {
       const originalMethod = (page as any)[method].bind(page);
