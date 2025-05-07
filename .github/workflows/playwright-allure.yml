@@ -2,56 +2,96 @@ name: Playwright Tests with Allure Report
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: "Browser to use for tests"
+        required: false
+        default: "chromium"
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+      debug:
+        description: "Run with debug mode"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   test_and_report:
-    timeout-minutes: 10
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.52.0
 
     permissions:
       contents: write
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Install dependencies
         run: npm ci
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: |
+          if [ "${{ github.event.inputs.debug }}" == "true" ]; then
+            npx playwright test --browser=${{ github.event.inputs.browser || 'chromium' }} --debug
+          else
+            npx playwright test --browser=${{ github.event.inputs.browser || 'chromium' }}
+          fi
         env:
           CI: true
 
       - name: Install Java for Allure
+        if: always()
         run: |
           apt-get update
           apt-get install -y openjdk-17-jre
 
       - name: Set JAVA_HOME
+        if: always()
         run: |
           JAVA_HOME_PATH=$(dirname $(dirname $(readlink -f $(which java))))
           echo "JAVA_HOME=$JAVA_HOME_PATH" >> $GITHUB_ENV
 
-      - name: Install allure-commandline locally
-        run: |
-          npm install allure-commandline --save-dev
-
-      - name: Check for Allure results (optional)
-        run: |
-          if [ ! -d "allure-results" ]; then
-            echo "Directory 'allure-results' not found. No test results to generate report from."
-            exit 1
-          fi
+      - name: Install allure-commandline
+        if: always()
+        run: npm install allure-commandline --save-dev
 
       - name: Generate Allure Report
         if: always()
         run: |
           mkdir -p allure-report
           npx allure generate allure-results --clean --output allure-report
+          echo "Allure report generated at $(pwd)/allure-report"
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results/
+            allure-results/
+          retention-days: 30
 
       - name: Upload Allure Report Artifact
         if: always()
@@ -61,9 +101,13 @@ jobs:
           path: allure-report/
           retention-days: 30
 
-      - name: Deploy Allure Report to GitHub Pages
-        if: always() && github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload Allure Report to GitHub Pages
+        if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
+          path: allure-report
+
+      - name: Deploy to GitHub Pages
+        if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        id: deployment
+        uses: actions/deploy-pages@v4
