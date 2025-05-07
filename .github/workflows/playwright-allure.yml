@@ -38,11 +38,18 @@ jobs:
         run: |
           npm install -g allure-commandline
 
+      - name: Check for Allure results (optional)
+        run: |
+          if [ ! -d "allure-results" ]; then
+            echo "Directory 'allure-results' not found. No test results to generate report from."
+            exit 1
+          fi
+
       - name: Generate Allure Report
         if: always()
         run: |
           mkdir -p allure-report
-          allure generate allure-results --clean --output allure-report
+          npx allure generate allure-results --clean --output allure-report
 
       - name: Upload Allure Report Artifact
         if: always()
