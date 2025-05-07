@@ -1,0 +1,44 @@
+name: Playwright Tests with Allure Report
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test_and_report:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.52.0-jammy 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+        
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          CI: true 
+
+      - name: Generate Allure Report
+        run: npx allure generate allure-results --clean
+        
+
+      - name: Upload Allure Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+          retention-days: 30
+
+      - name: Deploy Allure Report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
