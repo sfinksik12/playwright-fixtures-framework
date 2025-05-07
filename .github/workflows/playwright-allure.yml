@@ -26,11 +26,8 @@ jobs:
         env:
           CI: true
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
+      - name: Install Java for Allure
+        run: apt-get update && apt-get install -y openjdk-17-jre
 
       - name: Generate Allure Report
         if: always()
@@ -42,6 +39,7 @@ jobs:
         with:
           name: allure-report
           path: allure-report
+          retention-days: 30
 
       - name: Deploy Allure Report to GitHub Pages
         if: always() && github.ref == 'refs/heads/main'
