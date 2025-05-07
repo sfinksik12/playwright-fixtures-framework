@@ -32,7 +32,11 @@ jobs:
           apt-get install -y openjdk-17-jre
 
       - name: Set JAVA_HOME
-        run: echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
+        id: set_java_home
+        run: |
+          JAVA_HOME_PATH=$(dirname $(dirname $(readlink -f $(which java))))
+          echo "Setting JAVA_HOME to $JAVA_HOME_PATH"
+          echo "JAVA_HOME=$JAVA_HOME_PATH" >> $GITHUB_ENV
 
       - name: Install Allure CLI
         run: |
@@ -49,7 +53,8 @@ jobs:
         if: always()
         run: |
           mkdir -p allure-report
-          npx allure generate allure-results --clean --output allure-report
+          export JAVA_HOME=${{ env.JAVA_HOME }}
+          allure generate allure-results --clean --output allure-report
 
       - name: Upload Allure Report Artifact
         if: always()
