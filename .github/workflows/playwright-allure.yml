@@ -35,30 +35,21 @@ jobs:
         run: mkdir -p allure-results
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --reporter=line,allure-playwright
         env:
           CI: true
 
       - name: Install Java for Allure
         if: always()
-        run: |
-          apt-get update
-          apt-get install -y openjdk-17-jre
+        run: apt-get update && apt-get install -y openjdk-17-jre
 
       - name: Install allure-commandline
         if: always()
-        run: npm install allure-commandline --save-dev
+        run: npm install -g allure-commandline
 
       - name: Generate Allure Report
         if: always()
-        run: |
-          if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
-            mkdir -p allure-report
-            npx allure generate allure-results --clean --output allure-report
-          else
-            mkdir -p allure-report
-            echo "<html><body><h1>No test results available</h1></body></html>" > allure-report/index.html
-          fi
+        run: mkdir -p allure-report && allure generate allure-results --clean -o allure-report
 
       - name: Upload Allure Report to GitHub Pages
         if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')

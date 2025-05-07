@@ -1,24 +1,79 @@
-// tests/example.spec.ts
 import { test, expect } from "../src/fixtures/base.fixture";
 import { BasePage } from "../src/pages/base.page";
+import { allure } from "allure-playwright";
 
-test("пример с логированием в Allure", async ({ page }) => {
+test("пример с логированием в Allure @smoke", async ({ page }) => {
+  allure.severity("critical");
+  allure.tag("smoke");
+  allure.label("epic", "Examples");
+  allure.label("feature", "Basic Features");
+  allure.label("story", "Playwright Website Navigation");
+  allure.description("Проверка доступности главной страницы Playwright");
+  allure.link("https://playwright.dev/");
+
   const basePage = new BasePage(page);
-  await basePage.goto("https://playwright.dev/");
-});
-test("should navigate to Docs and switch language", async ({ mainPage }) => {
-  await mainPage.goto("https://playwright.dev/");
-  await mainPage.navbar.selectLanguage("Python");
-  await mainPage.navbar.toggleTheme();
+
+  await test.step("Переходим на сайт Playwright", async () => {
+    await basePage.goto("https://playwright.dev/");
+    const screenshot = await page.screenshot();
+    await allure.attachment("screenshot", screenshot, {
+      contentType: "image/png",
+    });
+  });
+
+  await test.step("Проверяем заголовок страницы", async () => {
+    const title = await page.title();
+    allure.parameter("Page Title", title);
+    expect(title).toContain("Playwright");
+  });
 });
 
-test.describe("NavbarFragment", () => {
+test("should navigate to Docs and switch language @regression", async ({
+  mainPage,
+}) => {
+  allure.label("epic", "Examples");
+  allure.label("feature", "Navigation");
+  allure.severity("normal");
+
+  await test.step("Переходим на сайт", async () => {
+    await mainPage.goto("https://playwright.dev/");
+  });
+
+  await test.step("Выбираем язык Python", async () => {
+    await mainPage.navbar.selectLanguage("Python");
+    allure.parameter("Selected Language", "Python");
+  });
+
+  await test.step("Переключаем тему", async () => {
+    await mainPage.navbar.toggleTheme();
+  });
+});
+
+test.describe("NavbarFragment @ui", () => {
   test.beforeEach(async ({ mainPage, page }) => {
+    allure.label("epic", "UI Components");
+    allure.label("feature", "Navigation Bar");
     await page.goto("https://playwright.dev/");
   });
 
-  test("goToDocs", async ({ mainPage }) => {
-    await mainPage.navbar.goToDocs();
+  test("goToDocs @smoke", async ({ mainPage, page }) => {
+    allure.label("story", "Documentation Navigation");
+    allure.severity("blocker");
+    allure.tag("smoke");
+
+    await test.step("Переходим в документацию", async () => {
+      await mainPage.navbar.goToDocs();
+      const screenshot = await page.screenshot();
+      await allure.attachment("screenshot", screenshot, {
+        contentType: "image/png",
+      });
+    });
+
+    await test.step("Проверяем URL", async () => {
+      const url = page.url();
+      allure.parameter("Current URL", url);
+      expect(url).toContain("/docs/intro");
+    });
   });
 
   test("goToApi", async ({ mainPage }) => {
@@ -50,11 +105,21 @@ test.describe("NavbarFragment", () => {
     await mainPage.navbar.toggleTheme();
   });
 
-  test("выбор каждого языка и проверка выделения", async ({ mainPage }) => {
+  test("выбор каждого языка и проверка выделения @regression", async ({
+    mainPage,
+  }) => {
+    allure.label("story", "Language Selection");
+    allure.severity("critical");
+    allure.tag("regression");
+
     const languages = ["Python", "Java", ".NET"] as const;
+
     for (const lang of languages) {
-      await mainPage.navbar.selectLanguage(lang);
-      await expect(mainPage.navbar.languageMenuTrigger).toHaveText(lang);
+      await test.step(`Выбираем язык ${lang}`, async () => {
+        await mainPage.navbar.selectLanguage(lang);
+        await expect(mainPage.navbar.languageMenuTrigger).toHaveText(lang);
+        allure.parameter("Selected Language", lang);
+      });
     }
   });
 });
