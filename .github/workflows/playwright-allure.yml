@@ -9,7 +9,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.52.0-jammy
+      image: mcr.microsoft.com/playwright:v1.52.0-focal
 
     permissions:
       contents: write
@@ -27,21 +27,29 @@ jobs:
           CI: true
 
       - name: Install Java for Allure
-        run: apt-get update && apt-get install -y openjdk-17-jre
+        run: |
+          apt-get update
+          apt-get install -y openjdk-17-jre
+
+      - name: Set JAVA_HOME
+        run: echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
+
+      - name: Install Allure CLI
+        run: |
+          npm install -g allure-commandline
 
       - name: Generate Allure Report
         if: always()
-        run: npx allure generate allure-results --clean --output allure-report
-        env: # <-- Добавляем переменные окружения
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64 # <-- Путь к JRE
-          PATH: ${{ env.PATH }}:/usr/lib/jvm/java-17-openjdk-amd64/bin # <-- Добавляем bin в PATH
+        run: |
+          mkdir -p allure-report
+          allure generate allure-results --clean --output allure-report
 
       - name: Upload Allure Report Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: allure-report
+          path: allure-report/
           retention-days: 30
 
       - name: Deploy Allure Report to GitHub Pages
