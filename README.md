@@ -120,49 +120,11 @@ test("тест с использованием Page Object и Fragment", async (
     // src/pages/login.page.ts
     import { Page, Locator } from "@playwright/test";
     import { BasePage } from "./base.page";
-    // При необходимости импортируйте фрагменты, используемые на этой странице
-    // import { HeaderFragment } from "../fragments/header.fragment";
 
     export class LoginPage extends BasePage {
-      // Рекомендуется определять URL страницы, если он статический и полный
-      readonly url: string = "/login"; // или полный URL "https://example.com/login"
-
-      // --- Фрагменты (если есть) ---
-      // readonly header: HeaderFragment;
-
       constructor(page: Page) {
-        super(page); // Обязательно вызываем конструктор базового класса
-        // Инициализация фрагментов
-        // this.header = new HeaderFragment(this.page);
+        super(page);
       }
-
-      // --- Локаторы ---
-      // Используйте геттеры для ленивой инициализации локаторов
-      get usernameInput(): Locator {
-        return this.page.getByLabel("Username", { exact: true });
-      }
-      get passwordInput(): Locator {
-        return this.page.getByLabel("Password", { exact: true });
-      }
-      get loginButton(): Locator {
-        return this.page.getByRole("button", { name: "Login" });
-      }
-      get errorMessage(): Locator {
-        return this.page.locator(".error-message");
-      }
-      // ... другие локаторы
-
-      // --- Методы страницы (действия) ---
-      async login(username: string, password: string): Promise<void> {
-        await this.usernameInput.fill(username);
-        await this.passwordInput.fill(password);
-        await this.loginButton.click();
-      }
-
-      async goto(): Promise<void> {
-        await super.goto(this.url); // Используем базовый goto с URL этой страницы
-      }
-      // ... другие методы, специфичные для этой страницы
     }
     ```
 
@@ -171,33 +133,30 @@ test("тест с использованием Page Object и Fragment", async (
 
     ```typescript
     // src/fixtures/base.fixture.ts
-    import { test as baseTest, Page, expect } from "@playwright/test"; // Убедитесь, что Page и expect импортированы
+    import { test as baseTest, Page, expect } from "@playwright/test";
     import { wrapPageWithAllure } from "../allure-wrapper";
     import { MainPage } from "../pages/main.page";
     import { LoginPage } from "../pages/login.page"; // 👈 1. Импортируем новую страницу
 
-    // Расширяем глобальные типы для Playwright фикстур
     declare global {
       namespace PlaywrightTestArgs {
         interface Fixtures {
-          page: Page; // Стандартная фикстура Playwright
-          mainPage: MainPage; // Ваша существующая фикстура
+          page: Page;
+          mainPage: MainPage;
           loginPage: LoginPage; // 👈 2. Объявляем тип для новой фикстуры
         }
       }
     }
 
     export const test = baseTest.extend<{
-      page: Page; // Тип для стандартной фикстуры
-      mainPage: MainPage; // Тип для существующей фикстуры
+      page: Page;
+      mainPage: MainPage;
       loginPage: LoginPage; // 👈 3. Добавляем тип в параметры generic функции extend
     }>({
-      // Стандартная фикстура page, обернутая для Allure
       page: async ({ page }, use) => {
         wrapPageWithAllure(page);
         await use(page);
       },
-      // Ваша существующая фикстура mainPage
       mainPage: async ({ page }, use) => {
         const mainPage = new MainPage(page);
         await use(mainPage);
@@ -209,7 +168,7 @@ test("тест с использованием Page Object и Fragment", async (
       },
     });
 
-    export { expect }; // Реэкспортируем expect для удобства
+    export { expect };
     ```
 
     Теперь фикстура `loginPage` будет доступна в ваших тестах так же, как `page` и `mainPage`!
