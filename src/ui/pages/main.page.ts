@@ -1,9 +1,9 @@
-import { Page } from "playwright";
-import { BasePage } from "./base.page";
-import { NavbarFragment } from "../fragments/navbar.fragment";
+import { Page } from 'playwright';
+import { BasePage } from './base.page';
+import { NavbarFragment } from '../fragments/navbar.fragment';
 
 export class MainPage extends BasePage {
-  readonly url = "/";
+  readonly url = '/';
 
   private _navbar: NavbarFragment | undefined;
 

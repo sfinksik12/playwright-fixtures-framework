@@ -1,4 +1,4 @@
-import { allure } from "allure-playwright";
+import { allure } from 'allure-playwright';
 
 export function createStepDecorator(descriptionFn: (...args: any[]) => string) {
   return function (originalMethod: Function) {
