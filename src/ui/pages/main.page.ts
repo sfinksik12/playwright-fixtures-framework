@@ -1,4 +1,3 @@
-
 import { Page } from "playwright";
 import { BasePage } from "./base.page";
 import { NavbarFragment } from "../fragments/navbar.fragment";

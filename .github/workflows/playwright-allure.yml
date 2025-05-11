@@ -28,7 +28,7 @@ jobs:
           mkdir -p allure-results
 
       - name: Run tests
-        run: npx playwright test --reporter=line,allure-playwright
+        run: npx playwright test --workers=1 --reporter=line,allure-playwright
         env:
           CI: true
 

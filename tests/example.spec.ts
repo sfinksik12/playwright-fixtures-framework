@@ -1,5 +1,4 @@
 import { test, expect } from "../src/fixtures/base.fixture";
-import { BasePage } from "../src/pages/base.page";
 import { allure } from "allure-playwright";
 
 test.describe("NavbarFragment @ui", () => {
