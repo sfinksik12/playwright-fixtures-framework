@@ -40,21 +40,38 @@
 
 ```
 playwright-fixtures-framework/
-├── 📁 src/                     # Исходный код фреймворка 🛠️
-│   ├── 🔩 fixtures/
-│   │   └── base.fixture.ts    # Основные фикстуры с POM интеграцией
-│   ├── ✨ allure-wrapper/      # Интеграция с Allure
-│   │   ├── 📐 decorators/      # Декораторы для автологирования
-│   │   │   ├── page.decorators.ts
-│   │   │   ├── network.decorators.ts
-│   │   │   └── locator.decorators.ts
-│   │   └── index.ts         # Точка входа Allure обертки
-│   ├── 📄 pages/               # Page Object классы
-│   │   ├── base.page.ts
-│   ├── 🧩 fragments/           # Fragment Object классы (компоненты UI)
-│   │   ├── base.fragment.ts #
-│   └── 🛠️ utils/               # Вспомогательные функции
-
+├── 📁 src/                         # Исходный код фреймворка 🛠️
+│   ├── 🧩 ui/                      # UI-тестирование
+│   │   ├── 📄 pages/
+│   │   │   ├── base.page.ts        # Базовый класс страницы
+│   │   │   └── main.page.ts
+│   │   ├── 🧱 fragments/           # Fragment Object классы (компоненты UI)
+│   │   │   ├── base.fragment.ts    # Базовый класс фрагмента
+│   │   │   └── navbar.fragment.ts  # Фрагмент навигационной панели
+│   │   ├── 📐 decorators/          # Декораторы для UI-взаимодействий
+│   │   │   ├── page.decorators.ts      # Декораторы для Page
+│   │   │   ├── network.decorators.ts   # Логирование сетевых запросов
+│   │   │   └── locator.decorators.ts   # Декораторы для Locator
+│   │   └── index.ts
+│   │
+│   ├── 🌐 api/                     # API-тестирование
+│   │   ├── 🔌 service/             # Сервисы для работы с API
+│   │   │   └── google.service.ts
+│   │   ├── allureReport.ts         # Интеграция с Allure для API
+│   │   └── http_methods.ts         # Базовый класс и методы для HTTP-запросов
+│   │
+│   ├── 🔩 fixtures/                # Фикстуры для тестов
+│   │   ├── base.fixture.ts         # Базовые фикстуры
+│   │   ├── pom-fixture.ts          # Фикстуры для страниц (POM)
+│   │   ├── servises.fixture.ts     # Фикстуры для API-сервисов
+│   │   ├── merge.fixtures.ts       # Объединение разных типов фикстур
+│   │   └── expect.ts               # Расширенные ожидания для проверок
+│   │
+│   └── 🛠️ utils/                   # Вспомогательные функции и утилиты
+│       └── format.utils.ts         # Форматирование текста, селекторов и т.д.
+│
+├── ⚙️ .github/workflows/           # CI/CD пайплайны
+│   └── playwright-allure.yml       # GitHub Actions workflow для тестов и отчетов
 ```
 
 ## 🚀 Быстрый старт
